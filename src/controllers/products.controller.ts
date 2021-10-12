@@ -15,6 +15,14 @@ productsRouter.route('/api/products')
     });
   })
   .post((req, res) => {
+    const found = productsService.getOneByName(req.body.name);
+
+    if (found) {
+      return res.status(400).json({
+        message: 'A product with that name already exists',
+      });
+    }
+
     const product = productsService.create(req.body);
 
     return res.status(201).json({
@@ -24,12 +32,18 @@ productsRouter.route('/api/products')
 
 productsRouter.route('/api/products/:id')
   .get((req, res) => {
-    const product = productsService.getOneById(req.params.id);
+    const idOrName = req.params.id;
+
+    let product = productsService.getOneById(idOrName);
 
     if (!product) {
-      return res.status(404).json({
-        message: 'Product not found',
-      });
+      product = productsService.getOneByName(idOrName);
+
+      if (!product) {
+        return res.status(404).json({
+          message: 'Product not found',
+        });
+      }
     }
 
     return res.status(200).json({
